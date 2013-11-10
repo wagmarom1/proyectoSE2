@@ -10,10 +10,10 @@ MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
-    ui->setupUi(this);
+    ui->setupUi(this);                      //set up the gui
 
-    MAP_WIDTH = ui->lbMap->width();
-    MAP_HEIGHT =  ui->lbMap->height();
+    MAP_WIDTH = ui->lbMap->width();         //save the label width
+    MAP_HEIGHT =  ui->lbMap->height();      //save the label height
     pointPosition = new QPoint(0,0);
 
     std::cout << MAP_HEIGHT << std::endl;
@@ -26,7 +26,7 @@ MainWindow::MainWindow(QWidget *parent) :
 
     tmrTimer = new QTimer(this);
     connect(tmrTimer, SIGNAL(timeout()), this, SLOT(processFrameAndUpdateGUI()));
-    tmrTimer->start(200);
+    tmrTimer->start(20);
 }
 
 MainWindow::~MainWindow()
@@ -44,38 +44,21 @@ void MainWindow::processFrameAndUpdateGUI()
     if(!matOriginal) return;
 
     matOriginal=cvCloneImage(matOriginal);
-    //cv::inRange(matOriginal, cv::Scalar(0,0,175), cv::Scalar(100,100,256), matProcessed);
-    //cv::GaussianBlur(matProcessed, matProcessed, cv::Size(9,9), 1.5);
 
-    //smooth the original image using Gaussian kernel
-    cvSmooth(matOriginal, matOriginal, CV_GAUSSIAN,3,3);
+    cvSmooth(matOriginal, matOriginal, CV_GAUSSIAN,3,3);                    //smooth the original image using Gaussian kernel
 
-    //converting the original image into grayscale
-    IplImage* imgGrayScale = cvCreateImage(cvGetSize(matOriginal), 8, 1);
-    cvCvtColor(matOriginal,imgGrayScale,CV_BGR2GRAY);
 
-    //thresholding the grayscale image to get better results
-    cvThreshold(imgGrayScale,imgGrayScale,100,255,CV_THRESH_BINARY_INV);
+    IplImage* imgGrayScale = cvCreateImage(cvGetSize(matOriginal), 8, 1);   //create a space for img of grayscale
+    cvCvtColor(matOriginal,imgGrayScale,CV_BGR2GRAY);                       //converting the original image into grayscale
+
+    cvThreshold(imgGrayScale,imgGrayScale,100,255,CV_THRESH_BINARY_INV);    //thresholding the grayscale image to get better results
 
     //track the possition of the ball
-
-    //Convert Mat to IplImage
-//    IplImage *matOriginalIplImage;
-//    matOriginalIplImage = cvCreateImage(cvSize(ui->lbOriginal->width(),ui->lbOriginal->height()), IPL_DEPTH_8U, 1); //create IplImage for matOriginal
-//    matOriginalIplImage->imageData = (char *) matOriginal.data; // get data of matOriginal for IplImage
-    // Track triangle
     TrackObject(imgGrayScale);
 
-    //cv::Mat temp(matOriginalIplImage);
-    //matOriginal = temp;
-    //cv::cvtColor(matOriginal, matOriginal, CV_BGR2RGB);
-
-    QImage qimgOriginal = IplImagetoQImage(matOriginal);
-    //QImage qimgOriginal((uchar*)matOriginal->imageData, matOriginal->width, matOriginal->height, QImage::Format_RGB888);
-    //QImage qimgProcessed((uchar*)matProcessed.data, matProcessed.cols, matProcessed.rows, matProcessed.step, QImage::Format_Indexed8);
+    QImage qimgOriginal = IplImagetoQImage(matOriginal);                    //convert image read from video to QImage
 
     ui->lbOriginal->setPixmap(QPixmap::fromImage(qimgOriginal).scaled(this->ui->lbOriginal->width(),this->ui->lbOriginal->height(),Qt::KeepAspectRatio));
-    //ui->lbProcessed->setPixmap(QPixmap::fromImage(qimgProcessed));
     cvReleaseImage(&imgGrayScale);
 }
 
@@ -91,9 +74,9 @@ void MainWindow::on_pushButton_clicked()
 
 extern "C"
 void MainWindow::TrackObject(IplImage* imgThresh){
-        CvSeq* contour;  //hold the pointer to a contour
-        CvSeq* result;     //hold sequence of points of a contour
-        CvMemStorage *storage = cvCreateMemStorage(0); //storage area for all contours
+        CvSeq* contour;                                         //hold the pointer to a contour
+        CvSeq* result;                                          //hold sequence of points of a contour
+        CvMemStorage *storage = cvCreateMemStorage(0);          //storage area for all contours
 
         //finding all contours in the image
         cvFindContours(imgThresh, storage, &contour, sizeof(CvContour), CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE, cvPoint(0,0));
@@ -131,6 +114,9 @@ void MainWindow::TrackObject(IplImage* imgThresh){
                 if(x < MAP_WIDTH && 0 < x){
                   pointPosition->setX(x);
                 }
+                if(y < MAP_HEIGHT && 0 < y){
+                  pointPosition->setY(y);
+                }
            }
 
             //obtain the next contour
@@ -160,7 +146,7 @@ void MainWindow::paintEvent(QPaintEvent * e){
     QPainter painter(&pixmap);
     painter.setPen(QPen(Qt::darkMagenta, 5, Qt::DashLine, Qt::RoundCap));
     painter.setBrush(QBrush(Qt::green, Qt::SolidPattern));
-    painter.drawEllipse(pointPosition->x(), 0, 50, 50);
+    painter.drawEllipse(pointPosition->x(), MAP_HEIGHT-50, 50, 50);
 
     ui->lbMap->setPixmap(pixmap);
 }

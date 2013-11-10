@@ -27,19 +27,20 @@ private slots:
 
 private:
     Ui::MainWindow *ui;
-
     CvCapture* capwebcam;
-
     IplImage* matOriginal;
     cv::Mat matProcessed;
+    QPoint* pointPosition;
 
     std::vector<cv::Vec3f>::iterator itrCircles;
     std::vector<cv::Vec3f> vecCircles;
 
     void TrackObject(IplImage* imgThresh);
     QImage IplImagetoQImage(const IplImage *iplImage);
-
     QTimer* tmrTimer;
+
+protected:
+    void paintEvent(QPaintEvent * e);
 };
 
 #endif // MAINWINDOW_H

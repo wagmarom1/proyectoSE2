@@ -1,5 +1,6 @@
 <RCC>
     <qresource prefix="/repo">
         <file>galaxy-normal.jpg</file>
+        <file>packet.png</file>
     </qresource>
 </RCC>

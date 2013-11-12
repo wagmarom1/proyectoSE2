@@ -2,11 +2,13 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include "packetadmin.h"
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 #include <cv.h>
 #include <QTimer>
+#include <QtCore>
 
 namespace Ui {
 class MainWindow;
@@ -31,6 +33,8 @@ private:
     IplImage* matOriginal;
     cv::Mat matProcessed;
     QPoint* pointPosition;
+    packetAdmin* packetAdm;
+    QTimer* timer;
 
     std::vector<cv::Vec3f>::iterator itrCircles;
     std::vector<cv::Vec3f> vecCircles;

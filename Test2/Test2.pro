@@ -13,9 +13,13 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    packetadmin.cpp \
+    packet.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    packetadmin.h \
+    packet.h
 
 FORMS    += mainwindow.ui
 

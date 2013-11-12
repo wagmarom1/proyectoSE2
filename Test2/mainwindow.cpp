@@ -1,23 +1,40 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-#include <QtCore>
 #include <QPainter>
 using namespace std;
 
-float MAP_WIDTH, MAP_HEIGHT;
 
+
+float MAP_WIDTH, MAP_HEIGHT;
+packet *newPacket;
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);                      //set up the gui
 
+    //packet admin
+    packetAdm = new packetAdmin();
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), packetAdm, SLOT(createPacket())); //each 5s will throw a packet
+    connect(packetAdm, SIGNAL(crossTheEnd(QString)), ui->label, SLOT(setText(QString))); //refresh lost counter
+    timer->start(5000);
+
+//    QThread* newThread = new QThread();
+//    newPacket = new packet();
+
+//    newPacket->moveToThread(newThread);
+//    connect(newPacket, SIGNAL(moveRequested()), newThread, SLOT(start()));
+//    connect(newThread, SIGNAL(started()), newPacket, SLOT(move()));
+//    connect(newPacket, SIGNAL(finished()), newPacket, SLOT(quit()), Qt::DirectConnection);
+
+//    newPacket->requestMoving();
+
     MAP_WIDTH = ui->lbMap->width();         //save the label width
     MAP_HEIGHT =  ui->lbMap->height();      //save the label height
     pointPosition = new QPoint(0,0);
 
-    std::cout << MAP_HEIGHT << std::endl;
-    capwebcam = cvCaptureFromCAM(0);
+    capwebcam = cvCaptureFromCAM(1);
 
     if(!capwebcam)
     {
@@ -34,6 +51,19 @@ MainWindow::~MainWindow()
     delete ui;
     cvReleaseImage(&matOriginal);
     cvReleaseCapture(&capwebcam);
+
+    //delete instances, threads and abort packets
+    for(int i = 0; i < packetAdm->getPackets().size(); i++)
+    {
+        packet* packet_ = packetAdm->getPackets().at(i);
+        QThread* thread_ = packetAdm->getThreads().at(i);
+        packet_->abort();
+        thread_->wait();
+        delete packet_;
+        delete thread_;
+    }
+    delete packetAdm;
+    delete timer;
 }
 
 
@@ -60,6 +90,7 @@ void MainWindow::processFrameAndUpdateGUI()
 
     ui->lbOriginal->setPixmap(QPixmap::fromImage(qimgOriginal).scaled(this->ui->lbOriginal->width(),this->ui->lbOriginal->height(),Qt::KeepAspectRatio));
     cvReleaseImage(&imgGrayScale);
+    repaint();
 }
 
 void MainWindow::on_pushButton_clicked()
@@ -138,9 +169,10 @@ QImage MainWindow::IplImagetoQImage(const IplImage *iplImage)
     return img.rgbSwapped();;
 }
 
+
 void MainWindow::paintEvent(QPaintEvent * e){
 
-    QPixmap pixmap(ui->lbMap->width(),ui->lbMap->height());
+    QImage pixmap(ui->lbMap->width(),ui->lbMap->height(), QImage::Format_ARGB32_Premultiplied);
     pixmap.fill(QColor("transparent"));
 
     QPainter painter(&pixmap);
@@ -148,5 +180,18 @@ void MainWindow::paintEvent(QPaintEvent * e){
     painter.setBrush(QBrush(Qt::green, Qt::SolidPattern));
     painter.drawEllipse(pointPosition->x(), MAP_HEIGHT-50, 50, 50);
 
-    ui->lbMap->setPixmap(pixmap);
+
+    for(int i = 0; i < packetAdm->getPackets().size(); i++)
+    {
+        packet* actualPacket = packetAdm->getPackets().at(i);
+        painter.drawEllipse(actualPacket->getPosition(), 10, 10);
+    }
+//    painter.drawEllipse(newPacket->getPosition(), 10, 10);
+//    std::cout << "paso" <<std::endl;
+
+//    if(!packetAdm->getPackets().isEmpty()){
+//        QString val = QString::number(packetAdm->getPackets().at(0)->getPosition().y());
+//        std::cout << val.toStdString() <<std::endl;
+//    }
+    ui->lbMap->setPixmap(QPixmap::fromImage(pixmap));
 }

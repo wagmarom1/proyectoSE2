@@ -8,8 +8,8 @@ packet::packet(QObject *parent) :
     _moving = false;
     _abort = false;
     srand (time(NULL));
-    int x = rand() % 100;
-    int speed = rand() % 5 + 1;
+    int x = rand() % 521;
+    int speed = rand() % 6 + 1;
     _pos.setX(x); _pos.setY(0);
     _speed = speed;
 }
@@ -47,9 +47,9 @@ void packet::move()
 
         // abort is when program is exited or if player pick up a packet, and limit is when
         // packet cross the limit and player loose it
-        if(abort || _pos.y() > 300)
+        if(abort || _pos.y() > 451)
         {
-            if(_pos.y() > 300) emit loosePacket();
+            if(_pos.y() > 451) emit loosePacket();
             break;
         }
 
@@ -68,7 +68,7 @@ void packet::move()
     mutex.lock();
     _moving = false;
     mutex.unlock();
-
+    emit deletePacket(this);
     emit finished();
 }
 

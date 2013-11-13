@@ -26,13 +26,14 @@ public slots:
     void processFrameAndUpdateGUI();
 private slots:
     void on_pushButton_clicked();
+    void on_horizontalScrollBar_valueChanged(int value);
 
 private:
     Ui::MainWindow *ui;
     CvCapture* capwebcam;
     IplImage* matOriginal;
     cv::Mat matProcessed;
-    QPoint* pointPosition;
+    QPoint* playerPosition;
     packetAdmin* packetAdm;
     QTimer* timer;
 
@@ -41,7 +42,7 @@ private:
 
     void TrackObject(IplImage* imgThresh);
     QImage IplImagetoQImage(const IplImage *iplImage);
-    QTimer* tmrTimer;
+    QTimer* guiTimer;
 
 protected:
     void paintEvent(QPaintEvent * e);

@@ -26,7 +26,8 @@ private:
 signals:
     void moveRequested();                   //when packed admin request its start
     void finished();                        //tell the thread that it finish
-    void loosePacket();                     //when player loose a packet, we need to infor to packedAdmin
+    void loosePacket();                     //when player loose a packet, packet* lostPacket we need to infor to packedAdmin
+    void deletePacket(packet *lostPacket);
 
 public slots:
     void move();

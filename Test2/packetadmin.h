@@ -13,6 +13,7 @@ public:
     explicit packetAdmin(QObject *parent = 0);
     QList<packet*> getPackets();
     QList<QThread*> getThreads();
+    void resetLostPackets();
 
 private:
     int _lostPackets;
@@ -25,6 +26,7 @@ signals:
 public slots:
     void createPacket();
     void increaseLostPackets();
+    void deletePacketFromList(packet* lostPacket);
 };
 
 #endif // PACKETADMIN_H

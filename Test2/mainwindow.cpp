@@ -1,49 +1,40 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QPainter>
+#include <QPicture>
 using namespace std;
 
+const int CAMID = 0,                       //cam selected
+          LEVEL_DELAY = 8000,              //delay to drop a packet
+          GUI_REFRESH_DELAY = 20;          //delay to refresh gui
+int MAP_WIDTH, MAP_HEIGHT, packetsCatched;
 
-
-float MAP_WIDTH, MAP_HEIGHT;
-packet *newPacket;
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);                      //set up the gui
-
-    //packet admin
-    packetAdm = new packetAdmin();
-    timer = new QTimer(this);
-    connect(timer, SIGNAL(timeout()), packetAdm, SLOT(createPacket())); //each 5s will throw a packet
-    connect(packetAdm, SIGNAL(crossTheEnd(QString)), ui->label, SLOT(setText(QString))); //refresh lost counter
-    timer->start(5000);
-
-//    QThread* newThread = new QThread();
-//    newPacket = new packet();
-
-//    newPacket->moveToThread(newThread);
-//    connect(newPacket, SIGNAL(moveRequested()), newThread, SLOT(start()));
-//    connect(newThread, SIGNAL(started()), newPacket, SLOT(move()));
-//    connect(newPacket, SIGNAL(finished()), newPacket, SLOT(quit()), Qt::DirectConnection);
-
-//    newPacket->requestMoving();
-
     MAP_WIDTH = ui->lbMap->width();         //save the label width
     MAP_HEIGHT =  ui->lbMap->height();      //save the label height
-    pointPosition = new QPoint(0,0);
+    packetsCatched = 0;
+    playerPosition = new QPoint(0,0);
 
-    capwebcam = cvCaptureFromCAM(1);
+    capwebcam = cvCaptureFromCAM(CAMID);
 
     if(!capwebcam)
     {
         return;
     }
+    //packet admin
+    packetAdm = new packetAdmin();
+    timer = new QTimer(this);
+    connect(timer, SIGNAL(timeout()), packetAdm, SLOT(createPacket())); //each 5s will throw a packet
+    connect(packetAdm, SIGNAL(crossTheEnd(QString)), ui->lbLost, SLOT(setText(QString))); //refresh lost counter
+    timer->start(LEVEL_DELAY);
 
-    tmrTimer = new QTimer(this);
-    connect(tmrTimer, SIGNAL(timeout()), this, SLOT(processFrameAndUpdateGUI()));
-    tmrTimer->start(20);
+    guiTimer = new QTimer(this);
+    connect(guiTimer, SIGNAL(timeout()), this, SLOT(processFrameAndUpdateGUI()));
+    guiTimer->start(20);
 }
 
 MainWindow::~MainWindow()
@@ -95,12 +86,10 @@ void MainWindow::processFrameAndUpdateGUI()
 
 void MainWindow::on_pushButton_clicked()
 {
-    if(pointPosition->x()==50)
-    {
-        pointPosition->setX(0);
-    }else {
-        pointPosition->setX(50);
-    }
+    packetsCatched = 0;
+    ui->lbCached->setText(QString::number(0));
+    packetAdm->resetLostPackets();
+    ui->lbLost->setText(QString::number(0));
 }
 
 extern "C"
@@ -142,11 +131,12 @@ void MainWindow::TrackObject(IplImage* imgThresh){
                 cvPutText(matOriginal, strs_char_type , *pt[0], &font, cvScalar(0,255,0));
                 ui->lbpoint->setText(QString(strs_char_type));
 
+                //Change the player position
                 if(x < MAP_WIDTH && 0 < x){
-                  pointPosition->setX(x);
+                  playerPosition->setX(x);
                 }
                 if(y < MAP_HEIGHT && 0 < y){
-                  pointPosition->setY(y);
+                  playerPosition->setY(y);
                 }
            }
 
@@ -172,26 +162,45 @@ QImage MainWindow::IplImagetoQImage(const IplImage *iplImage)
 
 void MainWindow::paintEvent(QPaintEvent * e){
 
-    QImage pixmap(ui->lbMap->width(),ui->lbMap->height(), QImage::Format_ARGB32_Premultiplied);
-    pixmap.fill(QColor("transparent"));
+    QImage pixmap(ui->lbMap->width(),ui->lbMap->height(), QImage::Format_ARGB32_Premultiplied);         //create pixmap qith lbMap dimensions
+    pixmap.fill(QColor("transparent"));                                                                 //set the filled surface
 
-    QPainter painter(&pixmap);
-    painter.setPen(QPen(Qt::darkMagenta, 5, Qt::DashLine, Qt::RoundCap));
-    painter.setBrush(QBrush(Qt::green, Qt::SolidPattern));
-    painter.drawEllipse(pointPosition->x(), MAP_HEIGHT-50, 50, 50);
+    QPainter painter(&pixmap);                                                                          //create painter
+    painter.setPen(QPen(Qt::darkMagenta, 3, Qt::DotLine, Qt::RoundCap));                                //set a pen to draw with dot line and magenta
+    painter.setBrush(QBrush(Qt::green, Qt::CrossPattern));                                              //set a brush cross patern and green
+    QRectF rectangle(playerPosition->x(), MAP_HEIGHT-50, 70.0, 20.0);                                   //get a rectangle to draw a elipse
+    painter.drawEllipse(rectangle);                                                                     //draw a elipse
+    painter.setBrush(QBrush(Qt::darkBlue, Qt::Dense3Pattern));
+    QPainterPath path;                                                                                  //with path u can draw wherever u want
+    path.moveTo(playerPosition->x(), MAP_HEIGHT-35);                                                    //point to a first position
+    path.lineTo(playerPosition->x(), MAP_HEIGHT);                                                       //draw a line
+    path.cubicTo(playerPosition->x()+35, MAP_HEIGHT-5, playerPosition->x()+35, MAP_HEIGHT-20, playerPosition->x()+70, MAP_HEIGHT);   //draw a cubic the first 2 points make a deformation on the line till the last point
+    path.lineTo(playerPosition->x()+70, MAP_HEIGHT-35);                                                 //another line
+    painter.drawPath(path);                                                                             //finaly draw the configured path
 
 
+    painter.setPen(QPen(Qt::darkRed, 2, Qt::SolidLine, Qt::SquareCap));
+    painter.setBrush(QBrush(Qt::green, Qt::Dense5Pattern));
+    // Paint each packet and check if player catch it
     for(int i = 0; i < packetAdm->getPackets().size(); i++)
     {
         packet* actualPacket = packetAdm->getPackets().at(i);
         painter.drawEllipse(actualPacket->getPosition(), 10, 10);
+        if(playerPosition->x() < actualPacket->getPosition().x() &&
+                actualPacket->getPosition().x() < (playerPosition->x()+70) &&
+                (MAP_HEIGHT-50) < actualPacket->getPosition().y() && actualPacket->getPosition().y() < (MAP_HEIGHT-40))
+        {
+            actualPacket->abort();
+            packetsCatched ++;
+            ui->lbCached->setText(QString::number(packetsCatched));
+        }
     }
-//    painter.drawEllipse(newPacket->getPosition(), 10, 10);
-//    std::cout << "paso" <<std::endl;
 
-//    if(!packetAdm->getPackets().isEmpty()){
-//        QString val = QString::number(packetAdm->getPackets().at(0)->getPosition().y());
-//        std::cout << val.toStdString() <<std::endl;
-//    }
     ui->lbMap->setPixmap(QPixmap::fromImage(pixmap));
+}
+
+void MainWindow::on_horizontalScrollBar_valueChanged(int value)
+{
+    ui->lbLevel->setText(QString::number(value/10));
+    timer->setInterval(LEVEL_DELAY/(value/10));
 }

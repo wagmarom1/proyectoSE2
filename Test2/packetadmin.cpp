@@ -16,11 +16,17 @@ void packetAdmin::createPacket()
     connect(newPacket, SIGNAL(moveRequested()), newThread, SLOT(start()));
     connect(newThread, SIGNAL(started()), newPacket, SLOT(move()));
     connect(newPacket, SIGNAL(finished()), newThread, SLOT(quit()), Qt::DirectConnection);
+    connect(newPacket, SIGNAL(deletePacket(packet*)), this, SLOT(deletePacketFromList(packet*)));
     connect(newPacket, SIGNAL(loosePacket()), this, SLOT(increaseLostPackets()));
 
     newPacket->requestMoving();
     _packets.append(newPacket);
     _threads.append(newThread);
+}
+
+void packetAdmin::deletePacketFromList(packet *lostPacket)
+{
+    _packets.removeOne(lostPacket);
 }
 
 void packetAdmin::increaseLostPackets()
@@ -37,4 +43,9 @@ void packetAdmin::increaseLostPackets()
  QList<QThread*> packetAdmin::getThreads()
  {
      return _threads;
+ }
+
+ void packetAdmin::resetLostPackets()
+ {
+     _lostPackets = 0;
  }

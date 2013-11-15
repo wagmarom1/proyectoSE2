@@ -18,9 +18,9 @@
     <property name="geometry">
      <rect>
       <x>20</x>
-      <y>130</y>
-      <width>331</width>
-      <height>201</height>
+      <y>110</y>
+      <width>291</width>
+      <height>231</height>
      </rect>
     </property>
     <property name="autoFillBackground">
@@ -28,6 +28,9 @@
     </property>
     <property name="text">
      <string/>
+    </property>
+    <property name="scaledContents">
+     <bool>true</bool>
     </property>
    </widget>
    <widget class="QLabel" name="lbMap">
@@ -53,12 +56,15 @@
     <property name="scaledContents">
      <bool>false</bool>
     </property>
+    <property name="wordWrap">
+     <bool>false</bool>
+    </property>
    </widget>
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
       <x>10</x>
-      <y>374</y>
+      <y>360</y>
       <width>101</width>
       <height>41</height>
      </rect>
@@ -104,11 +110,25 @@ QPushButton:pressed {
        <height>22</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <pointsize>11</pointsize>
+       <weight>75</weight>
+       <italic>true</italic>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="text">
       <string>Square</string>
      </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
     </widget>
     <widget class="QRadioButton" name="rbTriangle">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
      <property name="geometry">
       <rect>
        <x>0</x>
@@ -117,11 +137,19 @@ QPushButton:pressed {
        <height>22</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <pointsize>11</pointsize>
+       <weight>75</weight>
+       <italic>true</italic>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="text">
       <string>Triangle</string>
      </property>
      <property name="checked">
-      <bool>true</bool>
+      <bool>false</bool>
      </property>
     </widget>
    </widget>
@@ -227,7 +255,7 @@ QPushButton:pressed {
      <rect>
       <x>130</x>
       <y>450</y>
-      <width>171</width>
+      <width>181</width>
       <height>21</height>
      </rect>
     </property>

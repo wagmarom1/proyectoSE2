@@ -18,6 +18,7 @@ public:
 private:
     QPoint _pos;                            //actual position of packet
     float _speed;                           //speed of packet
+    int   _points;
 
     bool _moving;                           //to indicate if moving
     bool _abort;                            //to abort threads when exiting
@@ -32,6 +33,7 @@ signals:
 public slots:
     void move();
     QPoint getPosition();
+    int getPoints();
 };
 
 #endif // PACKET_H

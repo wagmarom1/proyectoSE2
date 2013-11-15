@@ -5,13 +5,13 @@
 packet::packet(QObject *parent) :
     QObject(parent)
 {
-    _moving = false;
+    _moving = false;                    //initialization of values
     _abort = false;
-    srand (time(NULL));
-    int x = rand() % 521;
-    int speed = rand() % 6 + 1;
-    _pos.setX(x); _pos.setY(0);
-    _speed = speed;
+    srand (time(NULL));                 // PRNG Pseudo Random Number Generator
+    _speed = rand() % 6 + 1;            // get a random number between 0-6 and add 1
+    _pos.setX(rand() % 521 /*lbMap Width*/);  // set a inicial X position in a random value interval between 0 and lbMap Width
+    _pos.setY(0);                       // packets start at y = 0
+    _points = rand() % 100;
 }
 
 
@@ -74,4 +74,8 @@ void packet::move()
 
 QPoint packet::getPosition(){
     return _pos;
+}
+
+int packet::getPoints(){
+    return _points;
 }

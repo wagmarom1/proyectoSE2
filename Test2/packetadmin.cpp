@@ -1,5 +1,5 @@
 #include "packetadmin.h"
-
+#include <iostream>
 
 packetAdmin::packetAdmin(QObject *parent) :
     QObject(parent)
@@ -15,7 +15,7 @@ void packetAdmin::createPacket()
     newPacket->moveToThread(newThread);
     connect(newPacket, SIGNAL(moveRequested()), newThread, SLOT(start()));
     connect(newThread, SIGNAL(started()), newPacket, SLOT(move()));
-    connect(newPacket, SIGNAL(finished()), newThread, SLOT(quit()), Qt::DirectConnection);
+    connect(newPacket, SIGNAL(finished()), newThread, SLOT(quit()), Qt::DirectConnection);              // (1)
     connect(newPacket, SIGNAL(deletePacket(packet*)), this, SLOT(deletePacketFromList(packet*)));
     connect(newPacket, SIGNAL(loosePacket()), this, SLOT(increaseLostPackets()));
 
@@ -26,7 +26,16 @@ void packetAdmin::createPacket()
 
 void packetAdmin::deletePacketFromList(packet *lostPacket)
 {
-    _packets.removeOne(lostPacket);
+    //At this point the signal finished of packet class was emited and the thread asociated with it is quit see(1) above,
+    //but still in _threads list and in memory so what we do here is get this thread and remove it from _thread list and memory with delete
+    //the same with the packet
+    std::cout << QString::number(_packets.size()).toStdString() <<std::endl;
+    int ind= _packets.indexOf(lostPacket);
+    QThread* thread = _threads.at(ind);
+    _packets.removeAt(ind);
+    _threads.removeAt(ind);
+    delete lostPacket;
+    delete thread;
 }
 
 void packetAdmin::increaseLostPackets()

@@ -35,6 +35,14 @@ MainWindow::MainWindow(QWidget *parent) :
     guiTimer = new QTimer(this);
     connect(guiTimer, SIGNAL(timeout()), this, SLOT(processFrameAndUpdateGUI()));
     guiTimer->start(20);
+
+    pixmap = new QImage(ui->lbMap->width(),ui->lbMap->height(), QImage::Format_ARGB32_Premultiplied);         //create pixmap qith lbMap dimensions
+    pixmap->fill(QColor("transparent"));                                                                 //set the filled surface
+
+    cleanerTimer = new QTimer(this);
+    cleaner = new QObjectCleanupHandler();
+    connect(cleanerTimer, SIGNAL(timeout()), this, SLOT(callGarbageCollector()));
+    cleanerTimer->start(10000);
 }
 
 MainWindow::~MainWindow()
@@ -57,6 +65,10 @@ MainWindow::~MainWindow()
     delete timer;
 }
 
+void MainWindow::callGarbageCollector()
+{
+    cleaner->clear();
+}
 
 void MainWindow::processFrameAndUpdateGUI()
 {
@@ -78,10 +90,10 @@ void MainWindow::processFrameAndUpdateGUI()
     TrackObject(imgGrayScale);
 
     QImage qimgOriginal = IplImagetoQImage(matOriginal);                    //convert image read from video to QImage
-
     ui->lbOriginal->setPixmap(QPixmap::fromImage(qimgOriginal).scaled(this->ui->lbOriginal->width(),this->ui->lbOriginal->height(),Qt::KeepAspectRatio));
     cvReleaseImage(&imgGrayScale);
-    repaint();
+    cvReleaseImage(&matOriginal);
+    paintEvent();
 }
 
 void MainWindow::on_pushButton_clicked()
@@ -90,6 +102,9 @@ void MainWindow::on_pushButton_clicked()
     ui->lbCached->setText(QString::number(0));
     packetAdm->resetLostPackets();
     ui->lbLost->setText(QString::number(0));
+    ui->lbLevel->setText(QString::number(1));
+    ui->horizontalScrollBar->setValue(10);
+    timer->setInterval(LEVEL_DELAY);
 }
 
 extern "C"
@@ -156,16 +171,13 @@ QImage MainWindow::IplImagetoQImage(const IplImage *iplImage)
     const uchar *qImageBuffer =(const uchar*)iplImage->imageData;
     QImage img(qImageBuffer, width, height, QImage::Format_RGB888);
 
-    return img.rgbSwapped();;
+    return img.rgbSwapped();
 }
 
 
-void MainWindow::paintEvent(QPaintEvent * e){
+void MainWindow::paintEvent(/*QPaintEvent * e*/){
 
-    QImage pixmap(ui->lbMap->width(),ui->lbMap->height(), QImage::Format_ARGB32_Premultiplied);         //create pixmap qith lbMap dimensions
-    pixmap.fill(QColor("transparent"));                                                                 //set the filled surface
-
-    QPainter painter(&pixmap);                                                                          //create painter
+    QPainter painter(pixmap);
     painter.setPen(QPen(Qt::darkMagenta, 3, Qt::DotLine, Qt::RoundCap));                                //set a pen to draw with dot line and magenta
     painter.setBrush(QBrush(Qt::green, Qt::CrossPattern));                                              //set a brush cross patern and green
     QRectF rectangle(playerPosition->x(), MAP_HEIGHT-50, 70.0, 20.0);                                   //get a rectangle to draw a elipse
@@ -186,21 +198,30 @@ void MainWindow::paintEvent(QPaintEvent * e){
     {
         packet* actualPacket = packetAdm->getPackets().at(i);
         painter.drawEllipse(actualPacket->getPosition(), 10, 10);
+        painter.drawText(actualPacket->getPosition(), QString::number(actualPacket->getPoints()));
         if(playerPosition->x() < actualPacket->getPosition().x() &&
                 actualPacket->getPosition().x() < (playerPosition->x()+70) &&
                 (MAP_HEIGHT-50) < actualPacket->getPosition().y() && actualPacket->getPosition().y() < (MAP_HEIGHT-40))
         {
             actualPacket->abort();
-            packetsCatched ++;
+            packetsCatched += actualPacket->getPoints();
+            QEventLoop loop;
+            QTimer::singleShot(100, &loop, SLOT(quit()));
+            loop.exec();
             ui->lbCached->setText(QString::number(packetsCatched));
         }
     }
 
-    ui->lbMap->setPixmap(QPixmap::fromImage(pixmap));
+    ui->lbMap->setPixmap(QPixmap::fromImage(*pixmap));
+
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.eraseRect(rect());
+    painter.end();
 }
+
 
 void MainWindow::on_horizontalScrollBar_valueChanged(int value)
 {
     ui->lbLevel->setText(QString::number(value/10));
-    timer->setInterval(LEVEL_DELAY/(value/10));
+    timer->setInterval(LEVEL_DELAY/(value/10));                                                         //set the timer interval so it make the packets drop faster
 }

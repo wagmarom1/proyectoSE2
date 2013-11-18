@@ -1,0 +1,66 @@
+commit 56d7ceb89b3395013e67ffa43e8bf4dc9b434212
+Author: wagmarom <wagmarom@gmail.com>
+Date:   Mon Nov 18 12:40:32 2013 -0600
+
+    ultima version
+
+commit 160a154ef78472011f1465a1ffe37696c581746e
+Author: wagmarom <wagmarom@gmail.com>
+Date:   Thu Nov 14 23:59:23 2013 -0600
+
+    cambios en eficiencia, borrado de threads, instancias y matrices de imagenes que no se ocupan, antes tiraba un error de desbordamiento de memoria
+
+commit 1377c0b03f8d11f65beffa236e2cb495b36600a5
+Author: wagmarom <wagmarom@gmail.com>
+Date:   Wed Nov 13 00:37:57 2013 -0600
+
+    gui chaniada, con colorcitos y timer sincronizado x nivel, agregado un guiTimer para pintado de la misma
+
+commit dad13914974c3d985e29eeb61bc372061d5d02d8
+Author: wagmarom <wagmarom@gmail.com>
+Date:   Mon Nov 11 19:52:58 2013 -0600
+
+    logica de hilos agregada, packet, packetAdmin
+
+commit 9268a089c3baa269bf0e0dc7d6a3f5b32cad7d99
+Author: wagmarom <wagmarom@gmail.com>
+Date:   Sun Nov 10 14:33:20 2013 -0600
+
+    logica de movimiento: sincronizado entre una pelota pintada en qlabel y tracking de triangulo o cuadrado
+
+commit d4c30f23e63df5123a09b848948137133f6cfe11
+Author: wagmarom <wagmarom@gmail.com>
+Date:   Sun Nov 10 14:31:35 2013 -0600
+
+    logica de movimiento: sincronizado entre una pelota pintada en qlabel y tracking de triangulo o cuadrado
+
+commit 8a8477006521c2fd1ebe9054cb4a50f2622cb907
+Author: wagmarom <wagmarom@gmail.com>
+Date:   Sat Nov 9 20:39:50 2013 -0600
+
+    logica de movimiento: sincronizado entre una pelota dentro de qlabel y tracking de triangulo-cuadrado
+
+commit 1a0065f28f9e36417c5830923f076a3d86fe3173
+Author: wagmarom <wagmarom@gmail.com>
+Date:   Sat Nov 9 03:13:43 2013 -0600
+
+    Contiene deteccion entre cuadrado y triangulo, integrado ya con la GUI de qt
+
+commit b2dd530fa4f9c42c79d749ece23935b2cab11922
+Merge: ce7f191 c5ad66a
+Author: wagmarom <wagmarom@gmail.com>
+Date:   Tue Oct 29 14:41:51 2013 -0600
+
+    Merge branch 'master' of github.com:wagmarom1/proyectoSE2
+
+commit ce7f1918485c8a156fd157e77e77a259c8346b4d
+Author: wagmarom <wagmarom@gmail.com>
+Date:   Tue Oct 29 14:40:41 2013 -0600
+
+    test de openCV
+
+commit c5ad66a19fd4b6886a9b25209026295e4c6e227a
+Author: wagner <wagmarom@gmail.com>
+Date:   Tue Oct 29 13:32:14 2013 -0700
+
+    Initial commit

@@ -3,10 +3,7 @@
 
 #include <QMainWindow>
 #include "packetadmin.h"
-#include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
-#include <opencv2/imgproc/imgproc.hpp>
-#include <cv.h>
+#include "trackfigure.h"
 #include <QTimer>
 #include <QtCore>
 #include <QObjectCleanupHandler>
@@ -24,27 +21,23 @@ public:
     ~MainWindow();
     
 public slots:
-    void processFrameAndUpdateGUI();
     void callGarbageCollector();
 
 private slots:
     void on_pushButton_clicked();
     void on_horizontalScrollBar_valueChanged(int value);
+    void repaint(QImage qimgOriginal);
+    void on_rbTriangle_toggled(bool checked);
 
 private:
     Ui::MainWindow *ui;
-    CvCapture* capwebcam;
-    IplImage* matOriginal;
-    QPoint* playerPosition;
     packetAdmin* packetAdm;
     QTimer* timer;
     QTimer* guiTimer;
     QTimer* cleanerTimer;
     QImage* pixmap;
     QObjectCleanupHandler* cleaner;
-
-    void TrackObject(IplImage* imgThresh);
-    QImage IplImagetoQImage(const IplImage *iplImage);
+    trackFigure* tracker;
 
 
 protected:
